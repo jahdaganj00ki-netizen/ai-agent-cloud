@@ -1,18 +1,65 @@
-const API_BASE = window.location.origin + '/api';
+import { Orchestrator } from './agents/orchestrator.js';
+import {
+    ResearchAgent, PlanningAgent, CodeGenerationAgent, CodeReviewAgent,
+    DebuggingAgent, TestAgent, SecurityAgent, UIUXAgent,
+    DatabaseAgent, DeploymentAgent, DocumentationAgent
+} from './agents/subagents.js';
+import { MemorySystem } from './memory.js';
+import { CloudSandbox } from './sandbox.js';
 
 let isProcessing = false;
+let orchestrator;
+let memory;
+let sandbox;
 
 const messagesContainer = document.getElementById('messages');
 const inputForm = document.getElementById('input-form');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
+const exportBtn = document.getElementById('export-btn');
 const btnText = document.getElementById('btn-text');
 const btnLoader = document.getElementById('btn-loader');
 const agentStatusList = document.getElementById('agent-status-list');
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadAgentStatuses();
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM Content Loaded');
+
+  memory = new MemorySystem();
+  sandbox = new CloudSandbox();
+
+  // Initialize Orchestrator and Agents
+  orchestrator = new Orchestrator();
+  orchestrator.registerAgent('Research', new ResearchAgent());
+  orchestrator.registerAgent('Planning', new PlanningAgent());
+  orchestrator.registerAgent('CodeGeneration', new CodeGenerationAgent());
+  orchestrator.registerAgent('CodeReview', new CodeReviewAgent());
+  orchestrator.registerAgent('Debugging', new DebuggingAgent());
+  orchestrator.registerAgent('Test', new TestAgent());
+  orchestrator.registerAgent('Security', new SecurityAgent());
+  orchestrator.registerAgent('UIUX', new UIUXAgent());
+  orchestrator.registerAgent('Database', new DatabaseAgent());
+  orchestrator.registerAgent('Deployment', new DeploymentAgent());
+  orchestrator.registerAgent('Documentation', new DocumentationAgent());
+
+  setupAgentStatusList();
   inputForm.addEventListener('submit', handleSubmit);
+  if (exportBtn) exportBtn.addEventListener('click', handleExport);
+
+  // Initialize Puter
+  try {
+    if (typeof puter !== 'undefined') {
+        if (puter.auth.isSignedIn()) {
+            addMessage('agent', 'System bereit. Angemeldet bei Puter.');
+        } else {
+            addMessage('agent', 'Bitte melde dich bei Puter an, um den Agenten zu nutzen.');
+            await puter.auth.signIn();
+        }
+    } else {
+        addMessage('agent', 'Puter SDK nicht geladen. Demo-Modus eingeschränkt.');
+    }
+  } catch (e) {
+    console.warn("Puter error:", e);
+  }
 });
 
 async function handleSubmit(e) {
@@ -26,26 +73,25 @@ async function handleSubmit(e) {
   userInput.value = '';
   
   setProcessing(true);
-  addProcessingMessage();
   
   try {
-    const response = await fetch(`${API_BASE}/process`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request }),
-    });
+    if (exportBtn) exportBtn.style.display = 'none';
+    const result = await orchestrator.process(request);
+    addMessage('agent', result);
     
-    const data = await response.json();
+    // Save to memory
+    await memory.saveEpisodic(request, result);
     
-    removeProcessingMessage();
-    
-    if (data.success) {
-      addMessage('agent', data.result);
-    } else {
-      addMessage('agent', `Fehler: ${data.error}`);
+    // Show files if any were generated
+    if (Object.keys(orchestrator.projectData.files).length > 0) {
+        let fileList = "\n\n**Generierte Dateien:**\n";
+        for (const filename in orchestrator.projectData.files) {
+            fileList += `- ${filename}\n`;
+        }
+        addMessage('agent', fileList);
+        if (exportBtn) exportBtn.style.display = 'block';
     }
   } catch (error) {
-    removeProcessingMessage();
     addMessage('agent', `Fehler: ${error.message}`);
   } finally {
     setProcessing(false);
@@ -64,21 +110,6 @@ function addMessage(role, content) {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function addProcessingMessage() {
-  const processingEl = document.createElement('div');
-  processingEl.className = 'message agent';
-  processingEl.id = 'processing-message';
-  processingEl.innerHTML = '<div class="loader"></div> Verarbeite...';
-  
-  messagesContainer.appendChild(processingEl);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function removeProcessingMessage() {
-  const processingEl = document.getElementById('processing-message');
-  if (processingEl) processingEl.remove();
-}
-
 function setProcessing(processing) {
   isProcessing = processing;
   userInput.disabled = processing;
@@ -88,28 +119,57 @@ function setProcessing(processing) {
   btnLoader.style.display = processing ? 'block' : 'none';
 }
 
-async function loadAgentStatuses() {
-  try {
-    const response = await fetch(`${API_BASE}/agent-statuses`);
-    const statuses = await response.json();
-    
-    agentStatusList.innerHTML = '';
-    for (const [type, status] of Object.entries(statuses)) {
-      const statusEl = document.createElement('div');
-      statusEl.className = 'status-item';
-      statusEl.innerHTML = `
-        <span class="status-indicator ${status}"></span>
-        <span>${formatAgentName(type)}</span>
-      `;
-      agentStatusList.appendChild(statusEl);
+function handleExport() {
+    const files = orchestrator.projectData.files;
+    let content = "";
+    for (const [filename, fileContent] of Object.entries(files)) {
+        content += `--- FILE: ${filename} ---\n${fileContent}\n\n`;
     }
-  } catch (error) {
-    console.error('Failed to load statuses:', error);
-  }
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'project_export.txt';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
-function formatAgentName(type) {
-  return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+function setupAgentStatusList() {
+    const agents = [
+        'Project Manager', 'Research', 'Planning', 'CodeGeneration',
+        'CodeReview', 'Debugging', 'Test', 'Security', 'UIUX',
+        'Database', 'Deployment', 'Documentation'
+    ];
+    
+    if (!agentStatusList) return;
+    agentStatusList.innerHTML = '';
+    agents.forEach(agent => {
+        const statusEl = document.createElement('div');
+        statusEl.className = 'status-item';
+        statusEl.innerHTML = `
+            <span class="status-indicator idle"></span>
+            <span>${agent}</span>
+        `;
+        agentStatusList.appendChild(statusEl);
+    });
+}
+
+// Listen for agent updates
+window.addEventListener('agent-update', (e) => {
+    const { agentName, status } = e.detail;
+    updateAgentStatusUI(agentName, status);
+});
+
+function updateAgentStatusUI(agentName, status) {
+    if (!agentStatusList) return;
+    const items = agentStatusList.querySelectorAll('.status-item');
+    items.forEach(item => {
+        if (item.textContent.includes(agentName)) {
+            const indicator = item.querySelector('.status-indicator');
+            indicator.className = 'status-indicator ' + (status === 'Done' ? 'idle' : 'active');
+        }
+    });
 }
 
 function escapeHtml(text) {
