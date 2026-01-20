@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤖 AI Coding Agent - Cloud</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>🤖 AI Coding Agent</h1>
+        <p class="version">v1.0.0 Cloud</p>
+        <span class="badge">100% Cloud</span>
+      </div>
+
+      <div class="agent-status">
+        <h3>Agent Status</h3>
+        <div id="agent-status-list" class="status-list"></div>
+      </div>
+
+      <div class="stats">
+        <h3>System</h3>
+        <div class="stat-info">
+          ✨ Läuft in der Cloud - 0% auf deinem Laptop!
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="chat-container">
+        <div id="messages" class="messages">
+          <div class="welcome">
+            <h2>Willkommen beim AI Coding Agent! 👋</h2>
+            <p>Ich bin ein autonomer Coding-Assistent mit spezialisierten Agenten:</p>
+            <ul>
+              <li><strong>Project Manager:</strong> Koordiniert alle Aufgaben</li>
+              <li><strong>Planning:</strong> Erstellt Implementierungspläne</li>
+              <li><strong>Code Generation:</strong> Schreibt Code</li>
+              <li><strong>Code Review:</strong> Überprüft Qualität</li>
+              <li><strong>Debugging:</strong> Behebt Fehler</li>
+            </ul>
+            <p><strong>💡 Tipp:</strong> Versuche "Erstelle eine TypeScript-Funktion für Primzahl-Prüfung"</p>
+          </div>
+        </div>
+
+        <form id="input-form" class="input-form">
+          <input type="text" id="user-input" placeholder="Beschreibe, was du bauen möchtest..." autocomplete="off" />
+          <button type="submit" id="send-btn">
+            <span id="btn-text">Senden</span>
+            <span id="btn-loader" class="loader" style="display: none;"></span>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+</body>
+</html>
