@@ -1,15 +1,13 @@
 services:
   - type: web
-    name: ai-coding-agent
+    name: ai-image-editor
     env: node
-    region: frankfurt
+    region: oregon
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
     healthCheckPath: /health
     autoDeploy: true
