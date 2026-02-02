@@ -31,5 +31,22 @@ Einfach auf Render.com oder einem anderen Cloud-Provider deployen. Die App benö
 3. Gib eine Anweisung ein, z.B. "Entferne den Hintergrund" oder "Mache den Himmel lila".
 4. Lade das Ergebnis herunter.
 
+## 📱 Android-App (Leichtgewichtiger Build)
+
+Du kannst die App direkt über die Kommandozeile in eine Android-APK verwandeln:
+
+1. **Voraussetzung:** Java (JDK) und Android SDK müssen auf deinem Laptop installiert sein.
+2. **Build ausführen:**
+   ```bash
+   npm run android:build
+   ```
+3. **APK finden:** Die fertige Datei liegt nach dem Build hier:
+   `android/app/build/outputs/apk/debug/app-debug.apk`
+
+Alternativ kannst du das Projekt in Android Studio öffnen:
+```bash
+npm run android:open
+```
+
 ---
 **Erstellt mit ❤️ und Puter.js**
