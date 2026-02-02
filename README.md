@@ -35,12 +35,18 @@ Einfach auf Render.com oder einem anderen Cloud-Provider deployen. Die App benö
 
 Du kannst die App direkt über die Kommandozeile in eine Android-APK verwandeln:
 
-1. **Voraussetzung:** Java (JDK) und Android SDK müssen auf deinem Laptop installiert sein.
-2. **Build ausführen:**
-   ```bash
+1. **Voraussetzung:** Java (JDK) und Android SDK müssen auf deinem Laptop installiert sein. Zudem muss `node_modules` vollständig installiert sein.
+2. **Installation & Build:**
+   ```powershell
+   npm install
+   npm run build
    npm run android:build
    ```
-3. **APK finden:** Die fertige Datei liegt nach dem Build hier:
+3. **Fehlerbehebung Windows:**
+   - Falls `tsc` nicht gefunden wird: Das liegt meist an fehlenden Berechtigungen oder Pfaden. Nutze immer `npm run build` statt `tsc` direkt.
+   - Falls `npx` Fehler wirft: Stelle sicher, dass du in einer modernen PowerShell (als Administrator) arbeitest.
+   - Falls der Android-Build fehlt: Stelle sicher, dass `ANDROID_HOME` in deinen Umgebungsvariablen korrekt gesetzt ist.
+4. **APK finden:** Die fertige Datei liegt nach dem Build hier:
    `android/app/build/outputs/apk/debug/app-debug.apk`
 
 Alternativ kannst du das Projekt in Android Studio öffnen:

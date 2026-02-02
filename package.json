@@ -5,12 +5,13 @@
   "main": "dist/server/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch server/index.ts",
-    "build": "tsc",
+    "dev": "npx tsx watch server/index.ts",
+    "build": "npx tsc",
+    "prestart": "npm run build",
     "start": "node dist/server/index.js",
-    "android:copy": "npx cap copy android",
-    "android:build": "npx cap copy android && cd android && ./gradlew assembleDebug",
-    "android:open": "npx cap open android"
+    "android:copy": "npx @capacitor/cli copy android",
+    "android:build": "npx @capacitor/cli copy android && cd android && ./gradlew assembleDebug",
+    "android:open": "npx @capacitor/cli open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.2",
