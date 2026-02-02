@@ -1,0 +1,16 @@
+{
+  "name": "AI Image Editor Chat",
+  "short_name": "AI Editor",
+  "description": "Ein KI-gestützter Chat zum Bearbeiten von Bildern mit Puter.js",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#2d2d2d",
+  "icons": [
+    {
+      "src": "https://js.puter.com/v2/img/puter-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,46 +1,35 @@
-# 🤖 AI Coding Agent - Cloud Edition
+# 🎨 AI Image Editor Chat - Cloud Edition
 
-100% Cloud-basiert - Läuft komplett in der Cloud, benötigt nur einen Browser!
+Ein 100% Cloud-basierter Bildbearbeitungs-Chat, der Puter.js nutzt. Erstelle, bearbeite und analysiere Bilder direkt im Browser.
 
-## 🚀 1-Click Deployment
+## 🚀 Features
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+- **Bildbearbeitung:** Hintergründe entfernen, Objekte ändern, Virtual Try-On.
+- **Drag & Drop:** Einfaches Hochladen von Bildern.
+- **PWA Support:** Installierbar auf Desktop und Smartphone.
+- **Dark/Light Mode:** Umschaltbares Design.
+- **Zero Cost für Entwickler:** Nutzt das User-Pays-Modell von Puter.js.
+- **Downloads:** Bearbeitete Bilder direkt herunterladen.
 
-Klicke auf den Button oben, um die App auf Render.com zu deployen!
+## 🛠️ Installation & Start
 
-## ✨ Features
-
-- **5 Core-Agenten:** Project Manager, Planning, Code Generation, Code Review, Debugging
-- **100% Cloud:** 0% CPU/RAM auf deinem Laptop
-- **Kostenlos:** Free Tier von Render.com
-- **Moderne UI:** Dark Theme, responsive Design
-
-## 💻 Lokale Entwicklung
-
+### Lokal ausführen:
 ```bash
 npm install
-npm run dev
+npm run build
+npm start
 ```
-
 Öffne http://localhost:3000
+
+### Deployment:
+Einfach auf Render.com oder einem anderen Cloud-Provider deployen. Die App benötigt kaum Ressourcen, da die KI-Logik im Frontend läuft.
 
 ## 📝 Verwendung
 
-1. Öffne die URL nach dem Deployment
-2. Stelle eine Anfrage: "Erstelle eine TypeScript-Funktion für Primzahl-Prüfung"
-3. Erhalte Ergebnisse im Chat
-
-## 🔧 Technologie-Stack
-
-- **Backend:** Express + TypeScript
-- **Frontend:** Vanilla JavaScript (kein Framework)
-- **Deployment:** Render.com (Free Tier)
-
-## 📊 Status
-
-**Version:** 1.0.0 MVP  
-**Status:** Demo Mode - Full agent system coming soon!
+1. Melde dich mit deinem Puter-Account an (oben links).
+2. Ziehe ein Bild in das Fenster oder klicke auf die Upload-Zone.
+3. Gib eine Anweisung ein, z.B. "Entferne den Hintergrund" oder "Mache den Himmel lila".
+4. Lade das Ergebnis herunter.
 
 ---
-
-**Erstellt mit ❤️ für schwache Laptops**
+**Erstellt mit ❤️ und Puter.js**
