@@ -52,23 +52,43 @@ async function handleSubmit(e) {
   }
 }
 
+/**
+ * Adds a chat message to the container.
+ * OPTIMIZATION: Uses 'textContent' and direct element creation instead of 'innerHTML'
+ * to avoid HTML parsing overhead and improve security.
+ */
 function addMessage(role, content) {
   const welcome = messagesContainer.querySelector('.welcome');
   if (welcome) welcome.remove();
   
   const messageEl = document.createElement('div');
   messageEl.className = `message ${role}`;
-  messageEl.innerHTML = `<div style="white-space: pre-wrap;">${escapeHtml(content)}</div>`;
+
+  const innerDiv = document.createElement('div');
+  innerDiv.style.whiteSpace = 'pre-wrap';
+  innerDiv.textContent = content;
+  messageEl.appendChild(innerDiv);
   
   messagesContainer.appendChild(messageEl);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+/**
+ * Adds a loading message while the agent is processing.
+ * OPTIMIZATION: Uses 'createElement' and 'createTextNode' to avoid 'innerHTML'
+ * and minimize layout reflows.
+ */
 function addProcessingMessage() {
   const processingEl = document.createElement('div');
   processingEl.className = 'message agent';
   processingEl.id = 'processing-message';
-  processingEl.innerHTML = '<div class="loader"></div> Verarbeite...';
+
+  const loader = document.createElement('div');
+  loader.className = 'loader';
+  processingEl.appendChild(loader);
+
+  const text = document.createTextNode(' Verarbeite...');
+  processingEl.appendChild(text);
   
   messagesContainer.appendChild(processingEl);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -88,21 +108,34 @@ function setProcessing(processing) {
   btnLoader.style.display = processing ? 'block' : 'none';
 }
 
+/**
+ * Loads and displays the current status of each agent.
+ * OPTIMIZATION: Uses 'DocumentFragment' to batch multiple DOM insertions into a single reflow.
+ * Also uses 'textContent' for text updates and efficiently clears existing content.
+ * PERFORMANCE IMPACT: Reduces layout calculations from O(n) to O(1) where n is the number of agents.
+ */
 async function loadAgentStatuses() {
   try {
     const response = await fetch(`${API_BASE}/agent-statuses`);
     const statuses = await response.json();
     
-    agentStatusList.innerHTML = '';
+    const fragment = document.createDocumentFragment();
     for (const [type, status] of Object.entries(statuses)) {
       const statusEl = document.createElement('div');
       statusEl.className = 'status-item';
-      statusEl.innerHTML = `
-        <span class="status-indicator ${status}"></span>
-        <span>${formatAgentName(type)}</span>
-      `;
-      agentStatusList.appendChild(statusEl);
+
+      const indicator = document.createElement('span');
+      indicator.className = `status-indicator ${status}`;
+
+      const name = document.createElement('span');
+      name.textContent = formatAgentName(type);
+
+      statusEl.appendChild(indicator);
+      statusEl.appendChild(name);
+      fragment.appendChild(statusEl);
     }
+    agentStatusList.textContent = '';
+    agentStatusList.appendChild(fragment);
   } catch (error) {
     console.error('Failed to load statuses:', error);
   }
@@ -110,10 +143,4 @@ async function loadAgentStatuses() {
 
 function formatAgentName(type) {
   return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
