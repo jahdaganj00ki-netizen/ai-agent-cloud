@@ -76,6 +76,16 @@ body {
   height: 8px;
   border-radius: 50%;
   background: #666;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.idle {
+  background: #666;
+}
+
+.status-indicator.active {
+  background: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
 }
 
 .stats {
