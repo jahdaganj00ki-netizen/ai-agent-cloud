@@ -58,8 +58,13 @@ function addMessage(role, content) {
   
   const messageEl = document.createElement('div');
   messageEl.className = `message ${role}`;
-  messageEl.innerHTML = `<div style="white-space: pre-wrap;">${escapeHtml(content)}</div>`;
   
+  // Use textContent for security and performance (avoids HTML parsing)
+  const contentEl = document.createElement('div');
+  contentEl.style.whiteSpace = 'pre-wrap';
+  contentEl.textContent = content;
+
+  messageEl.appendChild(contentEl);
   messagesContainer.appendChild(messageEl);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
@@ -68,7 +73,15 @@ function addProcessingMessage() {
   const processingEl = document.createElement('div');
   processingEl.className = 'message agent';
   processingEl.id = 'processing-message';
-  processingEl.innerHTML = '<div class="loader"></div> Verarbeite...';
+
+  // Use createElement instead of innerHTML to avoid parsing overhead
+  const loaderEl = document.createElement('div');
+  loaderEl.className = 'loader';
+
+  const textEl = document.createTextNode(' Verarbeite...');
+
+  processingEl.appendChild(loaderEl);
+  processingEl.appendChild(textEl);
   
   messagesContainer.appendChild(processingEl);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -93,16 +106,26 @@ async function loadAgentStatuses() {
     const response = await fetch(`${API_BASE}/agent-statuses`);
     const statuses = await response.json();
     
-    agentStatusList.innerHTML = '';
+    // Optimization: Use DocumentFragment to batch DOM updates and minimize layout reflows
+    const fragment = document.createDocumentFragment();
+
     for (const [type, status] of Object.entries(statuses)) {
       const statusEl = document.createElement('div');
       statusEl.className = 'status-item';
-      statusEl.innerHTML = `
-        <span class="status-indicator ${status}"></span>
-        <span>${formatAgentName(type)}</span>
-      `;
-      agentStatusList.appendChild(statusEl);
+
+      const indicator = document.createElement('span');
+      indicator.className = `status-indicator ${status}`;
+
+      const name = document.createElement('span');
+      name.textContent = formatAgentName(type);
+
+      statusEl.appendChild(indicator);
+      statusEl.appendChild(name);
+      fragment.appendChild(statusEl);
     }
+
+    agentStatusList.textContent = ''; // Clear existing content efficiently
+    agentStatusList.appendChild(fragment);
   } catch (error) {
     console.error('Failed to load statuses:', error);
   }
@@ -110,10 +133,4 @@ async function loadAgentStatuses() {
 
 function formatAgentName(type) {
   return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
