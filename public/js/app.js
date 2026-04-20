@@ -52,26 +52,49 @@ async function handleSubmit(e) {
   }
 }
 
+/**
+ * Scrolls the messages container to the bottom.
+ * Uses requestAnimationFrame to avoid layout thrashing and batches multiple calls.
+ */
+let scrollPending = false;
+function scrollToBottom() {
+  if (scrollPending) return;
+  scrollPending = true;
+  requestAnimationFrame(() => {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    scrollPending = false;
+  });
+}
+
 function addMessage(role, content) {
   const welcome = messagesContainer.querySelector('.welcome');
   if (welcome) welcome.remove();
   
   const messageEl = document.createElement('div');
   messageEl.className = `message ${role}`;
-  messageEl.innerHTML = `<div style="white-space: pre-wrap;">${escapeHtml(content)}</div>`;
   
+  const contentEl = document.createElement('div');
+  contentEl.style.whiteSpace = 'pre-wrap';
+  contentEl.textContent = content;
+
+  messageEl.appendChild(contentEl);
   messagesContainer.appendChild(messageEl);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  scrollToBottom();
 }
 
 function addProcessingMessage() {
   const processingEl = document.createElement('div');
   processingEl.className = 'message agent';
   processingEl.id = 'processing-message';
-  processingEl.innerHTML = '<div class="loader"></div> Verarbeite...';
+
+  const loader = document.createElement('div');
+  loader.className = 'loader';
+
+  processingEl.appendChild(loader);
+  processingEl.appendChild(document.createTextNode(' Verarbeite...'));
   
   messagesContainer.appendChild(processingEl);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  scrollToBottom();
 }
 
 function removeProcessingMessage() {
@@ -93,16 +116,26 @@ async function loadAgentStatuses() {
     const response = await fetch(`${API_BASE}/agent-statuses`);
     const statuses = await response.json();
     
-    agentStatusList.innerHTML = '';
+    // Use DocumentFragment to batch DOM updates and minimize reflows
+    const fragment = document.createDocumentFragment();
+
     for (const [type, status] of Object.entries(statuses)) {
       const statusEl = document.createElement('div');
       statusEl.className = 'status-item';
-      statusEl.innerHTML = `
-        <span class="status-indicator ${status}"></span>
-        <span>${formatAgentName(type)}</span>
-      `;
-      agentStatusList.appendChild(statusEl);
+
+      const indicator = document.createElement('span');
+      indicator.className = `status-indicator ${status}`;
+
+      const name = document.createElement('span');
+      name.textContent = formatAgentName(type);
+
+      statusEl.appendChild(indicator);
+      statusEl.appendChild(name);
+      fragment.appendChild(statusEl);
     }
+
+    agentStatusList.innerHTML = '';
+    agentStatusList.appendChild(fragment);
   } catch (error) {
     console.error('Failed to load statuses:', error);
   }
@@ -110,10 +143,4 @@ async function loadAgentStatuses() {
 
 function formatAgentName(type) {
   return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }

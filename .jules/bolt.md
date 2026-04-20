@@ -1,0 +1,3 @@
+## 2026-02-01 - [DOM Layout Thrashing & Safe Text Insertion]
+**Learning:** Initial profiling of the chat application revealed that sequential DOM updates using `innerHTML` combined with synchronous `scrollTop` assignments caused measurable performance degradation. Specifically, the `addMessage` function triggered a layout reflow for every message added, which is particularly expensive during initial load or bulk updates. Additionally, using `textContent` is significantly faster and safer than `innerHTML` + manual escaping.
+**Action:** Use `DocumentFragment` for batching DOM updates and `requestAnimationFrame` to decouple scroll adjustments from the main render cycle. Replace `innerHTML` with `textContent` for all dynamic user-provided content.
