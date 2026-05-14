@@ -1,0 +1,3 @@
+## 2025-01-24 - [DOM Manipulation Optimization]
+**Learning:** In the current implementation, `escapeHtml` creates a new DOM element and uses `innerHTML` for every message. This triggers the HTML parser and creates unnecessary memory pressure. Using `textContent` directly on a target element is significantly faster and more secure as it avoids the HTML parser altogether. Additionally, batching DOM updates with `DocumentFragment` can reduce layout reflows.
+**Action:** Replace `innerHTML` with `textContent` for plain text content and use `DocumentFragment` for batching updates to the agent status list.
