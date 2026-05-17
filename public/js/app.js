@@ -1,6 +1,7 @@
 const API_BASE = window.location.origin + '/api';
 
 let isProcessing = false;
+let scrollPending = false;
 
 const messagesContainer = document.getElementById('messages');
 const inputForm = document.getElementById('input-form');
@@ -58,20 +59,34 @@ function addMessage(role, content) {
   
   const messageEl = document.createElement('div');
   messageEl.className = `message ${role}`;
-  messageEl.innerHTML = `<div style="white-space: pre-wrap;">${escapeHtml(content)}</div>`;
   
+  // Use textContent instead of innerHTML for better performance and security
+  const contentEl = document.createElement('div');
+  contentEl.style.whiteSpace = 'pre-wrap';
+  contentEl.textContent = content;
+
+  messageEl.appendChild(contentEl);
   messagesContainer.appendChild(messageEl);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  // Batch scroll update to prevent layout thrashing
+  scrollToBottom();
 }
 
 function addProcessingMessage() {
   const processingEl = document.createElement('div');
   processingEl.className = 'message agent';
   processingEl.id = 'processing-message';
-  processingEl.innerHTML = '<div class="loader"></div> Verarbeite...';
+
+  const loader = document.createElement('div');
+  loader.className = 'loader';
+
+  const text = document.createTextNode(' Verarbeite...');
+
+  processingEl.appendChild(loader);
+  processingEl.appendChild(text);
   
   messagesContainer.appendChild(processingEl);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  scrollToBottom();
 }
 
 function removeProcessingMessage() {
@@ -88,21 +103,40 @@ function setProcessing(processing) {
   btnLoader.style.display = processing ? 'block' : 'none';
 }
 
+function scrollToBottom() {
+  if (!scrollPending) {
+    scrollPending = true;
+    requestAnimationFrame(() => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      scrollPending = false;
+    });
+  }
+}
+
 async function loadAgentStatuses() {
   try {
     const response = await fetch(`${API_BASE}/agent-statuses`);
     const statuses = await response.json();
     
-    agentStatusList.innerHTML = '';
+    // Use DocumentFragment to batch DOM updates
+    const fragment = document.createDocumentFragment();
     for (const [type, status] of Object.entries(statuses)) {
       const statusEl = document.createElement('div');
       statusEl.className = 'status-item';
-      statusEl.innerHTML = `
-        <span class="status-indicator ${status}"></span>
-        <span>${formatAgentName(type)}</span>
-      `;
-      agentStatusList.appendChild(statusEl);
+
+      const indicator = document.createElement('span');
+      indicator.className = `status-indicator ${status}`;
+
+      const name = document.createElement('span');
+      name.textContent = formatAgentName(type);
+
+      statusEl.appendChild(indicator);
+      statusEl.appendChild(name);
+      fragment.appendChild(statusEl);
     }
+
+    agentStatusList.innerHTML = '';
+    agentStatusList.appendChild(fragment);
   } catch (error) {
     console.error('Failed to load statuses:', error);
   }
@@ -112,8 +146,3 @@ function formatAgentName(type) {
   return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
